@@ -1,0 +1,17 @@
+# Duże pliki danych
+glosowania_raw.csv
+data/raw/glosowania_raw.csv
+
+# Śmieci Pythona i Jupyter Notebooks
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+
+# Wirtualne środowiska
+venv/
+.venv/
+env/
+
+# Systemowe
+.DS_Store
+Thumbs.db
