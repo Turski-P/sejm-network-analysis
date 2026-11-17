@@ -1,0 +1,69 @@
+# ---------------------------------------------------------------
+# Dane: odtwarzane skryptami, nie trzymamy ich w gicie
+# ---------------------------------------------------------------
+data/
+raw/
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.parquet
+*.csv
+*.gexf
+
+# Wyjatki: male probki do testow i wyniki, ktore chcemy publikowac
+!tests/fixtures/
+!tests/fixtures/**
+!results/
+!results/**
+!docs/**/*.csv
+
+# ---------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Srodowiska wirtualne
+.venv/
+venv/
+env/
+.env
+
+# ---------------------------------------------------------------
+# Jupyter
+# ---------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ---------------------------------------------------------------
+# Klucze API i sekrety (np. klucz do API Claude'a przy klasyfikacji)
+# ---------------------------------------------------------------
+.env
+.env.*
+secrets.yaml
+*.key
+
+# Cache wywolan LLM i modeli (duze, odtwarzalne)
+cache/
+.cache/
+models/
+hf_cache/
+
+# ---------------------------------------------------------------
+# Edytory i system
+# ---------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
