@@ -1,60 +1,120 @@
 # sejm-network-analysis
-# Sieciowa analiza dyscypliny klubowej w Sejmie RP (X Kadencja)
+
+Ilościowa analiza dyscypliny klubowej i głosowań w Sejmie RP. Projekt łączy dane z API Sejmu, analizę sieci społecznych (SNA) oraz, w kolejnych etapach, klasyfikację tematyczną głosowań metodami NLP.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![NetworkX](https://img.shields.io/badge/Library-NetworkX-orange.svg)](https://networkx.org/)
 [![Gephi](https://img.shields.io/badge/Visualization-Gephi-brightgreen.svg)](https://gephi.org/)
 [![API](https://img.shields.io/badge/Data-API%20Sejmu-red.svg)](https://api.sejm.gov.pl)
 
-Projekt poświęcony ilościowemu badaniu polaryzacji, spójności partyjnej oraz przepływów głosów w Sejmie RP X kadencji (posiedzenia 20–35, okres październik 2024 – maj 2025). 
+Status: w przebudowie. Etap 1 (notebooki) jest zakończony i oznaczony tagiem `v1-notebooks`. Etap 2 (infrastruktura danych i NLP) jest w toku na gałęzi `refactor/infrastructure`.
 
-Wykorzystując **Analizę Sieci Społecznych (SNA)**, algorytmy detekcji społeczności (**Louvain**) oraz miary centralności strukturalnej, projekt weryfikuje hipotezę o niemal bezwzględnej dyscyplinie koalicyjno-partyjnej i marginalnym stopniu przekraczania linii podziału rząd–opozycja.
+## Cel badawczy
 
----
+Główne pytanie: jak silna jest dyscyplina klubowa w Sejmie i czy zależy od tematu głosowania. Pytania szczegółowe:
 
-## Główne wnioski badawcze
+1. Jak mierzyć dyscyplinę w sposób, który różnicuje kluby i tematy (a nie osiąga sufitu)?
+2. Czy dyscyplina i przekraczanie linii podziału rząd-opozycja różnią się między obszarami polityk publicznych?
+3. Jak zmienia się struktura sieci posłów w czasie i między kadencjami?
+4. (Plan odległy) Czy treść debaty, widoczna w stenogramach, wyjaśnia odstępstwa od dyscypliny?
 
-1. Perfekcyjna spójność wewnątrzklubowa:
-   Gęstość wewnętrzna dla niemal wszystkich klubów (KO, PiS, PSL-TD, Polska 2050, Lewica, Razem, Konfederacja) wyniosła **1.000**, co oznacza, że posłowie danego ugrupowania głosowali ze sobą zgodnie w co najmniej 80% wspólnych obecności.
-   Jedynym wyjątkiem było koło Kukiz'15 (gęstość **0.833** – brak zaledwie jednej krawędzi na 10 możliwych).
-2. Strukturalna izolacja bloków politycznych:
-   Na 48 358 zidentyfikowanych powiązań w sieci zaledwie **242 krawędzie (poniżej 0.5%)** łączyły posłów koalicji rządzącej i opozycji.
-   Średnia waga połączeń między blokami wynosi **0.991** – oznacza to, że nieliczne ponadpartyjne krawędzie dotyczyły bardzo specyficznych, powtarzalnych głosowań proceduralnych lub konsensualnych.
-3. Wysoka modularność podziału:
-   Algorytm Louvaina wykrył trzy główne klasy społeczności przy współczynniku modularności **$Q = 0.477$** (wartości > 0.4 wskazują na silną strukturę klastrową):
-   **Klasa 1 (Koalicja rządząca):** KO, PSL-TD, Polska 2050-TD, Lewica, Razem.
-   **Klasa 2 (Główna opozycja):** PiS oraz część posłów Kukiz'15.
-   **Klasa 3 (Opozycja prawicowa):** Konfederacja oraz część posłów Kukiz'15.
-4. **Pozycja partii Razem:**
-   * Mimo braku wejścia do rządu, posłowie Razem strukturalnie zostali przyporządkowani do klastra koalicji rządzącej, choć zajmują pozycję peryferyjną w obrębie bloku (podobieństwo do pozycji Konfederacji wobec PiS).
+## Etapy projektu
 
----
+### Etap 1: analiza sieciowa (zakończony)
 
-## 📊 Kluczowe wizualizacje
+Sieć posłów X kadencji na podstawie posiedzeń 20-35 (991 głosowań, 742 po filtrze kontrowersyjności). Graf: 461 węzłów, 48 358 krawędzi, modularność Louvaina Q = 0.477. Szczegóły i wnioski w [docs/stage1_results.md](docs/stage1_results.md), kod w `notebooks/legacy/`.
+
+Uwaga metodologiczna: gęstość wewnątrzklubowa przy progu zgodności 0.80 osiąga wartość 1.000 dla większości klubów, więc w etapie 2 jest uzupełniana miarami ciągłymi.
+
+### Etap 2: infrastruktura danych (w toku)
+
+Przyrostowe pobieranie pełnych odpowiedzi API do `data/raw/`, znormalizowana baza (SQLite lub DuckDB), konfiguracja przez `config.yaml`. Schemat bazy w [docs/schema.md](docs/schema.md).
+
+### Etap 3: klasyfikacja tematyczna (planowany)
+
+Przypisanie każdemu głosowaniu kategorii tematycznej (kandydat: schemat Comparative Agendas Project), z etykietami zapisywanymi w osobnej tabeli wraz z metodą i wersją modelu. Walidacja na ręcznie oznaczonej próbie (accuracy, kappa Cohena). Opis w [docs/taxonomy.md](docs/taxonomy.md).
+
+### Etap 4: dyscyplina według kategorii (planowany)
+
+Miary ciągłe (indeks Rice'a, średnia zgodność par w klubie) agregowane po kategoriach z przedziałami ufności, sieci tematyczne i porównanie modularności.
+
+### Etap 5: transkrypcje (plan odległy)
+
+Połączenie głosowań ze stenogramami przez numery druków.
+
+## Struktura repozytorium
+
+```text
+sejm-network-analysis/
+  src/
+    collect.py       pobieranie przyrostowe z API do data/raw/
+    build_db.py      data/raw/ -> baza znormalizowana
+    classify.py      klasyfikacja tematyczna -> tabela labels
+    network.py       budowa grafów i metryki
+  notebooks/
+    legacy/          notebooki z etapu 1
+  tests/
+    fixtures/        małe próbki danych do testów
+  docs/              schemat bazy, taksonomia, metodologia, wyniki etapu 1
+  assets/            wizualizacje do README
+  results/           wyniki gotowe do publikacji
+  config.yaml        kadencja, zakres posiedzeń, progi, schemat kategorii
+  requirements.txt
+```
+
+Dane (`data/`, pliki baz, CSV, GEXF) nie są wersjonowane w gicie i są odtwarzane skryptami.
+
+## Instalacja i uruchomienie
+
+```bash
+git clone https://github.com/<uzytkownik>/sejm-network-analysis.git
+cd sejm-network-analysis
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Planowany przepływ pracy (po zakończeniu etapu 2):
+
+```bash
+python -m src.collect --term 10        # pobiera tylko brakujące głosowania
+python -m src.build_db                 # buduje lub aktualizuje bazę
+python -m src.classify --scheme cap    # etykiety tematyczne
+python -m src.network --config config.yaml
+```
+
+Dla klasyfikacji z użyciem LLM klucz API ustaw w pliku `.env` (nie jest śledzony przez git).
+
+## Dane
+
+Źródło: [API Sejmu RP](https://api.sejm.gov.pl). Dane są jawne, ale warto sprawdzić warunki ponownego wykorzystania przed publikacją pochodnych zbiorów. Surowe odpowiedzi API są zapisywane w niezmienionej postaci, a wszystkie przekształcenia dzieją się w kolejnych warstwach (znormalizowana baza, etykiety, wyniki).
+
+## Metodologia
+
+Opis miar, progów, obsługi nieobecnych i wstrzymujących się oraz walidacji klasyfikacji w [docs/methodology.md](docs/methodology.md). Parametry każdej analizy są zapisywane razem z wynikami, aby wykresy dało się odtworzyć.
+
+## Wizualizacje z etapu 1
 
 | Podział według klubów parlamentarnych | Detekcja społeczności (Louvain, Q = 0.477) |
 |:---:|:---:|
 | ![Graf partii](assets/graf_partii.png) | ![Graf klas modułów](assets/graf_modulow.png) |
-| *Węzły barwione wg klubów (KO, PiS, PSL, Polska 2050, Lewica, Razem, Konfederacja, Kukiz'15)* | *Społeczność 1: Koalicja + Razem \| Społeczność 2: PiS + Kukiz'15 \| Społeczność 3: Konfederacja* |
 
----
+## Plan prac
 
-## ⚙️ Metodologia i etapy analizy
+- [ ] Pobieranie przyrostowe pełnych JSON-ów
+- [ ] Schemat bazy i budowa bazy
+- [ ] Pobranie druków i powiązanie z głosowaniami
+- [ ] Taksonomia i klasyfikacja tematyczna
+- [ ] Walidacja ręczna (100-150 głosowań)
+- [ ] Miary dyscypliny według kategorii
+- [ ] Przepisanie analizy sieciowej na zapytania do bazy
+- [ ] Rozszerzenie na wcześniejsze kadencje
+- [ ] Transkrypcje
 
-```text
-[API Sejmu RP] 
-      │ (991 głosowań, posiedzenia 20–35)
-      ▼
-[Filtrowanie kontrowersyjności] 
-      │ (Odrzucenie głosowań ze zgodnością > 85%; pozostawiono 742 głosowania)
-      ▼
-[Konstrukcja macierzy podobieństwa] 
-      │ (Minimalna liczba wspólnych głosowań = 10; próg podobieństwa Jaccard/Agreement = 0.80)
-      ▼
-[Graf relacji posłów (NetworkX)] 
-      │ (461 węzłów, 48 358 krawędzi, gęstość = 0.458)
-      ▼
-[Analiza metryk SNA & Eksport GEXF] 
-      │ (Louvain Modularity, Betweenness Centrality, Clustering Coefficient)
-      ▼
-[Wizualizacja przestrzenna w Gephi]
+## Licencja
+
+Do uzupełnienia (np. MIT dla kodu).
+
+## Autor
+
+Do uzupełnienia
